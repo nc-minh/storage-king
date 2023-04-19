@@ -15,3 +15,5 @@
 # vendor/
 
 dev.env
+
+credentials.json
