@@ -1,3 +1,20 @@
+/**
+ * @license
+ * Copyright Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+// [START drive_quickstart]
 package main
 
 import (
@@ -7,8 +24,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
-	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/drive/v3"
@@ -17,6 +34,9 @@ import (
 
 // Retrieve a token, saves the token, then returns the generated client.
 func getClient(config *oauth2.Config) *http.Client {
+	// The file token.json stores the user's access and refresh tokens, and is
+	// created automatically when the authorization flow completes for the first
+	// time.
 	tokFile := "token.json"
 	tok, err := tokenFromFile(tokFile)
 	if err != nil {
@@ -31,32 +51,16 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
 	fmt.Printf("Go to the following link in your browser then type the "+
 		"authorization code: \n%v\n", authURL)
-	fmt.Println("Enter the authorization code:")
+
 	var authCode string
 	if _, err := fmt.Scan(&authCode); err != nil {
-		fmt.Println("authCode", err)
+		log.Fatalf("Unable to read authorization code %v", err)
 	}
-	fmt.Println("authCode", authCode)
 
 	tok, err := config.Exchange(context.TODO(), authCode)
 	if err != nil {
 		log.Fatalf("Unable to retrieve token from web %v", err)
 	}
-
-	fmt.Println(tok)
-	return tok
-}
-
-func get(ctx *gin.Context, config *oauth2.Config) *oauth2.Token {
-	authCode := ctx.Query("code")
-	tok, err := config.Exchange(context.TODO(), authCode)
-
-	fmt.Println("tok", tok)
-	fmt.Println("authCode", authCode)
-	if err != nil {
-		log.Fatalf("Unable to retrieve token from web %v", err)
-	}
-
 	return tok
 }
 
@@ -83,11 +87,31 @@ func saveToken(path string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
-func main() {
-	var C *http.Client
+func uploadFile(service *drive.Service, filePath string) error {
+	// Open the file.
+	file, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("Failed to open file: %v", err)
+	}
+	defer file.Close()
 
-	router := gin.Default()
+	// Create a Drive file.
+	driveFile := &drive.File{
+		Name:    filepath.Base(filePath),
+		Parents: []string{"root"},
+	}
 
+	// Upload the file to Drive.
+	_, err = service.Files.Create(driveFile).Media(file).Do()
+	if err != nil {
+		return fmt.Errorf("Failed to upload file: %v", err)
+	}
+
+	fmt.Printf("File '%s' uploaded successfully to parent folder '%s'.\n", driveFile.Name, driveFile.Id)
+	return nil
+}
+
+func ds() {
 	ctx := context.Background()
 	b, err := os.ReadFile("credentials.json")
 	if err != nil {
@@ -95,34 +119,20 @@ func main() {
 	}
 
 	// If modifying these scopes, delete your previously saved token.json.
-	config, err := google.ConfigFromJSON(b, drive.DriveMetadataReadonlyScope)
+	config, err := google.ConfigFromJSON(b, drive.DriveMetadataReadonlyScope, drive.DriveFileScope)
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
+	client := getClient(config)
 
-	router.GET("/auth/google/callback", func(c *gin.Context) {
-		// Lấy mã truy cập từ tham số "code" trong yêu cầu
-		get(c, config)
-
-		c.JSON(200, gin.H{
-			"message": "Successfully authenticated!",
-		})
-	})
-
-	router.GET("/auth", func(c *gin.Context) {
-
-		client := getClient(config)
-		c.JSON(200, gin.H{
-			"message": "Hello, World!",
-		})
-		C = client
-	})
-
-	router.Run(":8080")
-
-	srv, err := drive.NewService(ctx, option.WithHTTPClient(C))
+	srv, err := drive.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		log.Fatalf("Unable to retrieve Drive client: %v", err)
+	}
+
+	err = uploadFile(srv, "./low.webp")
+	if err != nil {
+		log.Fatalf("Failed to upload file: %v", err)
 	}
 
 	r, err := srv.Files.List().PageSize(10).
@@ -138,5 +148,6 @@ func main() {
 			fmt.Printf("%s (%s)\n", i.Name, i.Id)
 		}
 	}
-
 }
+
+// [END drive_quickstart]

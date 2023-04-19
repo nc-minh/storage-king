@@ -3,16 +3,18 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/nc-minh/storage-king/utils"
+	"golang.org/x/oauth2"
 )
 
 type Server struct {
-	config utils.Config
-	router *gin.Engine
+	config       utils.Config
+	router       *gin.Engine
+	oauth2Config *oauth2.Config
 }
 
-func NewServer(config utils.Config) (*Server, error) {
+func NewServer(config utils.Config, oauth2Config *oauth2.Config) (*Server, error) {
 
-	server := &Server{config: config}
+	server := &Server{config: config, oauth2Config: oauth2Config}
 
 	server.setupRouter()
 
@@ -35,7 +37,8 @@ func (server *Server) setupRouter() {
 			"message": "pong",
 		})
 	})
-	v1.POST("/pong", server.createDrive)
+
+	v1.POST("/upload", server.upload)
 
 	server.router = router
 }
