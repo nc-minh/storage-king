@@ -16,5 +16,5 @@
 
 dev.env
 
-credentials.json
 token.json
+credentials.json
