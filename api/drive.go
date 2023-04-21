@@ -53,6 +53,16 @@ func (server *Server) upload(ctx *gin.Context) {
 		return
 	}
 
+	// Set the permission for the new file
+	permission := &drive.Permission{
+		Type: "anyone",
+		Role: "reader",
+	}
+	_, err = srv.Permissions.Create(res.Id, permission).Do()
+	if err != nil {
+		log.Fatalf("Unable to create permission: %v", err)
+	}
+
 	fmt.Printf("File '%s' uploaded successfully to parent folder '%s'.\n", res.Name, res.Id)
 
 	ctx.JSON(200, gin.H{
