@@ -111,7 +111,7 @@ func uploadFile(service *drive.Service, filePath string) error {
 	return nil
 }
 
-func ds() {
+func s() {
 	ctx := context.Background()
 	b, err := os.ReadFile("credentials.json")
 	if err != nil {

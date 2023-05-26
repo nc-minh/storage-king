@@ -1,0 +1,16 @@
+Project storage_king {
+  database_type: 'PostgreSQL'
+  Note: '''
+    # Storage King Database
+  '''
+}
+
+Table storage as S {
+  id bigserial [pk]
+  email varchar [unique, not null]
+  access_token varchar [not null]
+  refresh_token varchar [not null]
+  is_refresh_token_expired boolean [not null, default: `false`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+}

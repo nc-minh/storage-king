@@ -1,0 +1,100 @@
+// package api
+
+// import (
+// 	"context"
+// 	"encoding/json"
+// 	"errors"
+// 	"log"
+// 	"net/http"
+
+// 	"github.com/gin-gonic/gin"
+// 	"golang.org/x/oauth2"
+// )
+
+// // func (server *Server) getTokenFromFile(ctx *gin.Context, file string) (*oauth2.Token, error) {
+// // 	fmt.Println("getTokenFromFile is running")
+// // 	f, err := os.Open(file)
+// // 	if err != nil {
+// // 		return nil, err
+// // 	}
+// // 	defer f.Close()
+// // 	tok := &oauth2.Token{}
+// // 	err = json.NewDecoder(f).Decode(tok)
+// // 	return tok, err
+// // }
+
+// func (server *Server) getTokenFromWeb(ctx *gin.Context) string {
+// 	authURL := server.oauth2Config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
+// 	return authURL
+
+// 	// var authCode string
+// 	// if _, err := fmt.Scan(&authCode); err != nil {
+// 	// 	log.Fatalf("Unable to read authorization code %v", err)
+// 	// }
+
+// 	// tok, err := server.oauth2Config.Exchange(context.TODO(), authCode)
+// 	// if err != nil {
+// 	// 	log.Fatalf("Unable to retrieve token from web %v", err)
+// 	// }
+// 	// return tok
+// }
+
+// func (server *Server) authCode(authCode string) *oauth2.Token {
+// 	tok, err := server.oauth2Config.Exchange(context.TODO(), authCode)
+// 	if err != nil {
+// 		log.Fatalf("Unable to retrieve token from web %v", err)
+// 	}
+// 	return tok
+// }
+
+// // func (server *Server) saveToken(ctx *gin.Context, path string, token *oauth2.Token) {
+// // 	fmt.Printf("Saving credential file to: %s\n", path)
+// // 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+// // 	if err != nil {
+// // 		log.Fatalf("Unable to cache oauth token: %v", err)
+// // 	}
+// // 	defer f.Close()
+// // 	json.NewEncoder(f).Encode(token)
+// // }
+
+// func (server *Server) getEmailFromToken(ctx *gin.Context, accessToken string) (string, error) {
+// 	// Tạo một HTTP client
+// 	client := &http.Client{}
+
+// 	// Tạo yêu cầu GET đến endpoint userinfo
+// 	req, err := http.NewRequest("GET", "https://www.googleapis.com/oauth2/v3/userinfo", nil)
+// 	if err != nil {
+// 		log.Printf("Failed to create request: %v", err)
+// 		return "", err
+// 	}
+
+// 	// Thêm access token vào header của yêu cầu
+// 	req.Header.Add("Authorization", "Bearer "+accessToken)
+
+// 	// Gửi yêu cầu và nhận phản hồi
+// 	resp, err := client.Do(req)
+// 	if err != nil {
+// 		log.Printf("Failed to get userinfo: %v", err)
+// 		return "", err
+// 	}
+// 	defer resp.Body.Close()
+
+// 	// Kiểm tra mã trạng thái của phản hồi
+// 	if resp.StatusCode != http.StatusOK {
+// 		log.Printf("Failed to get userinfo: %s", resp.Status)
+// 		return "", errors.New("Failed to get userinfo")
+// 	}
+
+// 	// Đọc và xử lý phản hồi JSON
+// 	var userInfo struct {
+// 		Email string `json:"email"`
+// 	}
+// 	err = json.NewDecoder(resp.Body).Decode(&userInfo)
+// 	if err != nil {
+// 		log.Printf("Failed to decode userinfo response: %v", err)
+// 		return "", err
+// 	}
+
+// 	// Trả về email
+// 	return userInfo.Email, nil
+// }
