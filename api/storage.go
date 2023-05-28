@@ -10,12 +10,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (server *Server) CreateAuthURL(ctx *gin.Context) {
+func (server *Server) createAuthURL(ctx *gin.Context) {
 	authURL := server.google.CreateAuthURL()
+	log.Info().Msg("create auth url successfully")
 	ctx.Redirect(302, authURL)
 }
 
-func (server *Server) CreateStorage(ctx *gin.Context) {
+func (server *Server) createStorage(ctx *gin.Context) {
 	code := ctx.Query("code")
 
 	tok, err := server.google.CodeAuthentication(code)
@@ -58,15 +59,15 @@ func (server *Server) CreateStorage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, storage)
 }
 
-type getStorageRequest struct {
-	ID    int64  `uri:"id" binding:"min=1"`
-	Email string `uri:"id"`
+type GetStorageRequest struct {
+	ID    int64  `json:"id"`
+	Email string `json:"email" `
 }
 
-func (server *Server) RefreshToken(ctx *gin.Context) {
-	var req getStorageRequest
+func (server *Server) refreshToken(ctx *gin.Context) {
+	var req GetStorageRequest
 
-	if err := ctx.ShouldBindUri(&req); err != nil {
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
@@ -87,5 +88,13 @@ func (server *Server) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
-	server.google.RefreshToken(storage.RefreshToken, server.config.ClientID, server.config.ClientSecret)
+	res, err := server.google.RefreshToken(storage.RefreshToken, server.config.ClientID, server.config.ClientSecret, storage.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"data": res,
+	})
 }

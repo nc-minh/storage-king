@@ -80,10 +80,12 @@ func (server *Server) setupRouter() {
 		})
 	})
 
-	// v1.POST("/upload", server.upload)
+	v1.POST("/upload", server.upload)
 
-	v1.GET("/auth-url", server.CreateAuthURL)
-	router.GET("/auth/google/callback", server.CreateStorage)
+	v1.GET("/auth-url", server.createAuthURL)
+	v1.POST("/google/refresh-token", server.refreshToken)
+
+	router.GET("/auth/google/callback", server.createStorage)
 
 	// router.GET("/auth/google/callback", func(c *gin.Context) {
 
