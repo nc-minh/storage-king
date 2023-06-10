@@ -16,7 +16,8 @@ SET
     access_token = COALESCE(sqlc.narg(access_token), access_token),
     refresh_token = COALESCE(sqlc.narg(refresh_token), refresh_token),
     is_refresh_token_expired = COALESCE(sqlc.narg(is_refresh_token_expired), is_refresh_token_expired),
-    access_token_expires_in = COALESCE(sqlc.narg(access_token_expires_in), access_token_expires_in)
+    access_token_expires_in = COALESCE(sqlc.narg(access_token_expires_in), access_token_expires_in),
+    updated_at = NOW()
 WHERE id = $1
 RETURNING *;
 

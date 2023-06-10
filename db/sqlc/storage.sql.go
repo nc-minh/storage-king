@@ -114,7 +114,8 @@ SET
     access_token = COALESCE($2, access_token),
     refresh_token = COALESCE($3, refresh_token),
     is_refresh_token_expired = COALESCE($4, is_refresh_token_expired),
-    access_token_expires_in = COALESCE($5, access_token_expires_in)
+    access_token_expires_in = COALESCE($5, access_token_expires_in),
+    updated_at = NOW()
 WHERE id = $1
 RETURNING id, access_token, refresh_token, is_refresh_token_expired, created_at, updated_at, email, access_token_expires_in
 `
