@@ -20,6 +20,9 @@ migrateup:
 migratedown:
 	migrate -path db/migrations -database "${DB_URL}" -verbose down
 
+forcing:
+	migrate -path db/migrations -database "${DB_URL}" force $(version)
+
 new_migration:
 	migrate create -ext sql -dir db/migrations -seq $(name)
 

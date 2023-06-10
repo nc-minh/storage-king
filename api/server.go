@@ -80,36 +80,12 @@ func (server *Server) setupRouter() {
 		})
 	})
 
-	v1.POST("/upload", server.upload)
+	v1.POST("/upload", server.accessTokenMiddleware, server.upload)
 
 	v1.GET("/auth-url", server.createAuthURL)
 	v1.POST("/google/refresh-token", server.refreshToken)
 
 	router.GET("/auth/google/callback", server.createStorage)
-
-	// router.GET("/auth/google/callback", func(c *gin.Context) {
-
-	// 	fmt.Println("conming here")
-	// 	code := c.Query("code")
-
-	// 	auth := server.authCode(code)
-
-	// 	email, err := server.getEmailFromToken(c, auth.AccessToken)
-	// 	if err != nil {
-	// 		c.JSON(200, gin.H{
-	// 			"message": "pong",
-	// 			"auth":    auth,
-	// 			"error":   err.Error(),
-	// 		})
-	// 		return
-	// 	}
-
-	// 	c.JSON(200, gin.H{
-	// 		"message": "pong",
-	// 		"auth":    auth,
-	// 		"email":   email,
-	// 	})
-	// })
 
 	server.router = router
 }

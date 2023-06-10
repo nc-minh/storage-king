@@ -5,15 +5,17 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 )
 
 type Storage struct {
-	ID                    int64     `json:"id"`
-	AccessToken           string    `json:"access_token"`
-	RefreshToken          string    `json:"refresh_token"`
-	IsRefreshTokenExpired bool      `json:"is_refresh_token_expired"`
-	CreatedAt             time.Time `json:"created_at"`
-	UpdatedAt             time.Time `json:"updated_at"`
-	Email                 string    `json:"email"`
+	ID                    int64         `json:"id"`
+	AccessToken           string        `json:"access_token"`
+	RefreshToken          string        `json:"refresh_token"`
+	IsRefreshTokenExpired bool          `json:"is_refresh_token_expired"`
+	CreatedAt             time.Time     `json:"created_at"`
+	UpdatedAt             time.Time     `json:"updated_at"`
+	Email                 string        `json:"email"`
+	AccessTokenExpiresIn  sql.NullInt32 `json:"access_token_expires_in"`
 }

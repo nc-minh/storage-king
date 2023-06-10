@@ -9,6 +9,7 @@ Table storage as S {
   id bigserial [pk]
   email varchar [unique, not null]
   access_token varchar [not null]
+  access_token_expires_in int
   refresh_token varchar [not null]
   is_refresh_token_expired boolean [not null, default: `false`]
   created_at timestamptz [not null, default: `now()`]

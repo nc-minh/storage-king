@@ -153,6 +153,10 @@ func (g *GoogleAuth) RefreshToken(refreshToken string, clientId string, clientSe
 			Bool:  false,
 			Valid: true,
 		},
+		AccessTokenExpiresIn: sql.NullInt32{
+			Int32: int32(refreshTokenResponse.ExpiresIn),
+			Valid: true,
+		},
 	})
 
 	if err != nil {

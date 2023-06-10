@@ -20,7 +20,7 @@ INSERT INTO storage (
     $2,
     $3
 )
-RETURNING id, access_token, refresh_token, is_refresh_token_expired, created_at, updated_at, email
+RETURNING id, access_token, refresh_token, is_refresh_token_expired, created_at, updated_at, email, access_token_expires_in
 `
 
 type CreateStorageParams struct {
@@ -40,12 +40,13 @@ func (q *Queries) CreateStorage(ctx context.Context, arg CreateStorageParams) (S
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Email,
+		&i.AccessTokenExpiresIn,
 	)
 	return i, err
 }
 
 const getStorage = `-- name: GetStorage :one
-SELECT id, access_token, refresh_token, is_refresh_token_expired, created_at, updated_at, email FROM storage
+SELECT id, access_token, refresh_token, is_refresh_token_expired, created_at, updated_at, email, access_token_expires_in FROM storage
 WHERE id = $1 OR email = $2
 LIMIT 1
 `
@@ -66,12 +67,13 @@ func (q *Queries) GetStorage(ctx context.Context, arg GetStorageParams) (Storage
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Email,
+		&i.AccessTokenExpiresIn,
 	)
 	return i, err
 }
 
 const listStorage = `-- name: ListStorage :many
-SELECT id, access_token, refresh_token, is_refresh_token_expired, created_at, updated_at, email FROM storage
+SELECT id, access_token, refresh_token, is_refresh_token_expired, created_at, updated_at, email, access_token_expires_in FROM storage
 `
 
 func (q *Queries) ListStorage(ctx context.Context) ([]Storage, error) {
@@ -91,6 +93,7 @@ func (q *Queries) ListStorage(ctx context.Context) ([]Storage, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Email,
+			&i.AccessTokenExpiresIn,
 		); err != nil {
 			return nil, err
 		}
@@ -110,9 +113,10 @@ UPDATE storage
 SET
     access_token = COALESCE($2, access_token),
     refresh_token = COALESCE($3, refresh_token),
-    is_refresh_token_expired = COALESCE($4, is_refresh_token_expired)
+    is_refresh_token_expired = COALESCE($4, is_refresh_token_expired),
+    access_token_expires_in = COALESCE($5, access_token_expires_in)
 WHERE id = $1
-RETURNING id, access_token, refresh_token, is_refresh_token_expired, created_at, updated_at, email
+RETURNING id, access_token, refresh_token, is_refresh_token_expired, created_at, updated_at, email, access_token_expires_in
 `
 
 type UpdateStorageParams struct {
@@ -120,6 +124,7 @@ type UpdateStorageParams struct {
 	AccessToken           sql.NullString `json:"access_token"`
 	RefreshToken          sql.NullString `json:"refresh_token"`
 	IsRefreshTokenExpired sql.NullBool   `json:"is_refresh_token_expired"`
+	AccessTokenExpiresIn  sql.NullInt32  `json:"access_token_expires_in"`
 }
 
 func (q *Queries) UpdateStorage(ctx context.Context, arg UpdateStorageParams) (Storage, error) {
@@ -128,6 +133,7 @@ func (q *Queries) UpdateStorage(ctx context.Context, arg UpdateStorageParams) (S
 		arg.AccessToken,
 		arg.RefreshToken,
 		arg.IsRefreshTokenExpired,
+		arg.AccessTokenExpiresIn,
 	)
 	var i Storage
 	err := row.Scan(
@@ -138,6 +144,7 @@ func (q *Queries) UpdateStorage(ctx context.Context, arg UpdateStorageParams) (S
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Email,
+		&i.AccessTokenExpiresIn,
 	)
 	return i, err
 }

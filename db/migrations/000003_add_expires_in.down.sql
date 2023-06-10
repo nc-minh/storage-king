@@ -1,0 +1,1 @@
+ALTER TABLE "storage" DROP COLUMN "access_token_expires_in";
