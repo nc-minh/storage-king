@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -15,14 +14,33 @@ import (
 	"google.golang.org/api/option"
 )
 
-func (server *Server) uploadToDrive(driveFile *drive.File, file multipart.File, accessToken string) (*drive.Service, *drive.File, error) {
-	client := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{
+var driveClient = make(map[string]*drive.Service)
+
+func (server *Server) getDriveClient(ctx *gin.Context, accessToken string) (*drive.Service, error) {
+	id := ctx.PostForm("id")
+
+	if driveClient[id] != nil {
+		return driveClient[id], nil
+	}
+
+	client := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: accessToken,
 	}))
+	log.Info().Msg("Drive client created")
 
-	srv, err := drive.NewService(context.Background(), option.WithHTTPClient(client))
+	srv, err := drive.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		log.Err(err).Msg("unable to retrieve Drive client")
+		return nil, err
+	}
+
+	driveClient[id] = srv
+	return driveClient[id], nil
+}
+
+func (server *Server) uploadToDrive(ctx *gin.Context, driveFile *drive.File, file multipart.File, accessToken string) (*drive.Service, *drive.File, error) {
+	srv, err := server.getDriveClient(ctx, accessToken)
+	if err != nil {
 		return nil, nil, err
 	}
 
@@ -55,7 +73,7 @@ func (server *Server) upload(ctx *gin.Context) {
 
 	accessToken := ctx.GetString("access_token")
 
-	srv, res, err = server.uploadToDrive(driveFile, file, accessToken)
+	srv, res, err = server.uploadToDrive(ctx, driveFile, file, accessToken)
 	if err != nil {
 		if apiErr, ok := err.(*googleapi.Error); ok && apiErr.Code == 401 {
 			log.Err(err).Msg("unable to upload to drive due to invalid token")

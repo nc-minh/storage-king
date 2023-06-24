@@ -43,6 +43,10 @@ func (server *Server) accessTokenMiddleware(ctx *gin.Context) {
 
 	if timeExpiresIn < timeNow {
 		log.Info().Msg("Access token expired, refreshing...")
+
+		// Delete old client
+		driveClient[id] = nil
+
 		res, err := server.google.RefreshToken(storage.RefreshToken, server.config.ClientID, server.config.ClientSecret, storage.ID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -53,5 +57,16 @@ func (server *Server) accessTokenMiddleware(ctx *gin.Context) {
 		ctx.Set("access_token", res.AccessToken)
 	}
 
+	ctx.Next()
+}
+
+func (server *Server) authMiddleware(ctx *gin.Context) {
+	cookie, err := ctx.Cookie("access_token")
+
+	if err != nil {
+		ctx.Redirect(http.StatusFound, "/authenticate")
+	}
+
+	ctx.Set("access_token", cookie)
 	ctx.Next()
 }

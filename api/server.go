@@ -51,7 +51,22 @@ func (server *Server) setupRouter() {
 		}
 	})
 
-	router.GET("/dashboard", func(c *gin.Context) {
+	router.GET("/authenticate", func(c *gin.Context) {
+		ts, err := template.ParseFiles(templates.VIEWS.Authenticate)
+		if err != nil {
+			log.Print(err.Error())
+			http.Error(c.Writer, "Internal Server Error", 500)
+			return
+		}
+
+		err = ts.Execute(c.Writer, nil)
+		if err != nil {
+			log.Print(err.Error())
+			http.Error(c.Writer, "Internal Server Error", 500)
+		}
+	})
+
+	router.GET("/dashboard", server.authMiddleware, func(c *gin.Context) {
 		ts, err := template.ParseFiles(templates.VIEWS.Dashboard)
 		if err != nil {
 			log.Print(err.Error())
