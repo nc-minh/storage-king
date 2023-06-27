@@ -98,3 +98,20 @@ func (server *Server) refreshToken(ctx *gin.Context) {
 		"data": res,
 	})
 }
+
+func (server *Server) getAllStorages(ctx *gin.Context) {
+	storages, err := server.store.ListStorage(ctx)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"data": storages,
+	})
+}

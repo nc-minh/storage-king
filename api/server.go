@@ -96,9 +96,9 @@ func (server *Server) setupRouter() {
 	})
 
 	v1.POST("/upload", server.accessTokenMiddleware, server.upload)
-
 	v1.GET("/auth-url", server.createAuthURL)
 	v1.POST("/google/refresh-token", server.refreshToken)
+	v1.GET("/storages", server.getAllStorages)
 
 	router.GET("/auth/google/callback", server.createStorage)
 
